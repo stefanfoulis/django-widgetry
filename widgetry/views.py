@@ -67,10 +67,13 @@ class Search(object):
                     field_qs[field_name] = smart_str(bit)
                 or_queries.append(Q(**field_qs))
             #print field_qs
-            other_qs = QuerySet(Model)
-            other_qs.dup_select_related(qs)
-            other_qs = other_qs.filter(reduce(operator.or_, or_queries))
-            qs = qs & other_qs
+            #other_qs = QuerySet(Model)
+            #other_qs.dup_select_related(qs)
+            #other_qs = other_qs.filter(reduce(operator.or_, or_queries))
+            #qs = qs & other_qs
+            # other approach
+            qs = qs.filter(reduce(operator.or_, or_queries))
+            
         qs = qs#[:limit]
         print "QUERY:"
         print qs
