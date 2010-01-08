@@ -2,6 +2,7 @@
 *.pyo
 .installed.cfg
 bin
+docs
 develop-eggs
 dist
 downloads

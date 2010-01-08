@@ -19,7 +19,7 @@
     $('#lookup_{{ name }}').autocomplete('{{ search_url }}', {
 		dataType: "json",
 		//cacheLength: 1,
-		max: 50,
+		max: 100,
 		//mustMatch: true,
 		width: 300,
 		matchSubset: false, {# if its true there is a runtime error in autocomplete #}
@@ -33,22 +33,15 @@
 			});
 		}, 
 		formatItem: function(item,i,n,search_term) {
-			r = '';
-			if (item.thumbnail_url) {
-				r += '<img class="item_thumbnail" src="' + item.thumbnail_url + '" alt="" />';
-			}
-			r += '<div class="item_title">' + item.title + '</div>' + '  <div class="item_description">' + item.description + '</div></div>' ;
-			return r;
+			return '<div>' + '<img src="' + item.thumbnail_url + '" alt="" />' + '<div>' + item.title + '</div>' + '  <div>' + item.description + '</div></div>' ;
 		},
 		extraParams: {
 			{% if is_generic_lookup %}content_type_id: function() { return $("#{{ content_type_field_name }}").val(); }
 			{% else %}content_type_id: '{{ content_type_id }}'
 			{% endif %}
-        },
-		highlight: function(value, term) {
-			return value.replace(new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + term.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1").replace(" ", "|")  + ")(?![^<>]*>)(?![^&;]+;)", "gi"), "<strong>$1</strong>");
-		},
+        }
     }).result(function(event, item) {
+		console.log("selected a result")
         if (item) {
             $('#id_{{ name }}').val(item.identifier);
             $('#del_{{ name }}').show();
@@ -58,7 +51,6 @@
         $('#id_{{ name }}').val('');
         $('#del_{{ name }}').hide();
         $('#lookup_{{ name }}').val('');
-		return false;
     });
 	{% if is_generic_lookup %}
     $('#{{ content_type_field_name }}').change(function(){

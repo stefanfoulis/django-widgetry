@@ -19,16 +19,19 @@ class FkLookup(widgets.Widget):
     Searchable Models must be registered in the search view:
         widgetry.views.search.register()
     """
-    def __init__(self, destination_model, attrs=None, show_edit=False):
-        print "init"
+    def __init__(self, destination_model, attrs=None, show_edit=False):        
+        if type(destination_model) == ContentType:
+            destination_model = destination_model.model_class()
+        
         if destination_model is None:
             self.content_type = None
-            self.destination_model = None  
+            self.destination_model = None
+            self.wrapper = None
         elif isinstance(destination_model, str):
             # convert to model if it is a string
             app_label, model_name = destination_model.split('.')
             self.content_type = ContentType.objects.get(app_label=app_label, model=model_name)
-            self.destination_model = content_type.model_class()
+            self.destination_model = self.content_type.model_class()
             self.wrapper = search.get_wrapper(self.destination_model)
         else:
             self.destination_model = destination_model
@@ -38,19 +41,29 @@ class FkLookup(widgets.Widget):
             #model_name = self.content_type.model
         self.show_edit = show_edit
         super(FkLookup, self).__init__(attrs)
-        print "done init"
     
     def label_for_value(self, value):
         """
         Given a value (the id of the ForeignKey field) evaluate the correct representation
         text for inside the input field.
         """
-        obj = self.destination_model.objects.get(pk=value)
+        #print "    the destination model to label %s (%s) with %s" % (self.destination_model, type(self.destination_model), value)
+        if not self.destination_model or not self.wrapper:
+            return ""
+        try:
+            #print "   GET OBJ of type %s (%s)" % ( self.destination_model, type(self.destination_model) )
+            obj = self.destination_model.objects.get(pk=value)
+        except Exception, e:
+            #print "EVIL EXCEPTION %s" % e
+            return "object missing!"
+        #print "   MAKE WRAP"
         wrapped_obj = self.wrapper(obj)
         text = wrapped_obj.title()
         return truncate_words(text, 14)
+        
     
     def render(self, name, value, attrs=None, extra_context={}):
+        #print "BEGIN RENDER %s: %s" % (name, value)
         template = loader.select_template(['widgetry/fk_lookup/widget.html'])
         search_url =  reverse('widgetry-search')
         admin_media_prefix = settings.ADMIN_MEDIA_PREFIX
@@ -64,7 +77,6 @@ class FkLookup(widgets.Widget):
             enable_edit = u'true'
         else:
             enable_edit = u'false'
-            
         if self.content_type:
             content_type_id = self.content_type.pk
             
@@ -74,9 +86,7 @@ class FkLookup(widgets.Widget):
             value = str(value)
         context = Context(locals())
         context.update(extra_context)
-        print "GOT CONTEXT"
         r = template.render(context)
-        print "REDNER DONE"
         return r        
         
         
@@ -93,7 +103,6 @@ class FkLookup(widgets.Widget):
 
 class GenericFkLookup(FkLookup):
     def __init__(self, content_type_field_name, initial_destination_model=None, attrs=None, show_edit=False):
-        print "INIT GFK"
         self.content_type_field_name = content_type_field_name
         super(GenericFkLookup, self).__init__(initial_destination_model, attrs, show_edit)
     def render(self, name, value, attrs=None, extra_context={}):
