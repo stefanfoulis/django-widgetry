@@ -17,16 +17,22 @@ from pprint import pprint
 from widgetry.utils import traverse_object
 from widgetry import signals
 
+def call_if_callable(fnc):
+    if callable(fnc):
+        return fnc()
+    else:
+        return fnc
+
 class SearchItemWrapper(object):
     THUMBNAIL_SIZE=int( getattr(settings,'WIDGETRY_FKLOOKUP_THUMBNAIL_SIZE',48) )
     def __init__(self, obj):
         self.obj = obj
     def identifier(self):
-        return getattr( self.obj, 'pk', None )
+        return call_if_callable( getattr( self.obj, 'pk', None ) )
     def title(self):
-        return getattr( self.obj, 'title', smart_unicode(self.obj) )
+        return call_if_callable( getattr( self.obj, 'title', smart_unicode(self.obj) ) )
     def description(self):
-        return getattr( self.obj, 'description', '' )
+        return call_if_callable( getattr( self.obj, 'description', '' ) )
     def thumbnail_full_file(self):
         return None
     def thumbnail_url(self):
