@@ -35,7 +35,7 @@ class SearchItemWrapper(object):
             # resize the image
             return None
         else:
-            return '/media/images/document_icon_pdf.gif'
+            return None#'/media/images/document_icon_pdf.gif'
 
 ATTRIBUTES = [
     'identifier',
@@ -122,39 +122,42 @@ class Search(object):
         #print qs
         for bit in query_string.split():
             or_queries = []
-            print bit
+            #print bit
             for field_name in Wrapper.search_fields:
-                print u"   %s" % field_name
+                #print u"   %s" % field_name
                 field_qs = {}
                 if not field_name.endswith('__icontains'):
                     field_qs['%s__icontains' % field_name] = smart_str(bit)
                 else:
                     field_qs[field_name] = smart_str(bit)
                 or_queries.append(Q(**field_qs))
-                print field_qs
+                #print field_qs
             #other_qs = QuerySet(Model)
             #other_qs.dup_select_related(qs)
             #other_qs = other_qs.filter(reduce(operator.or_, or_queries))
             #qs = qs & other_qs
             # other approach
-            print or_queries
+            #print or_queries
             qs = qs.filter(reduce(operator.or_, or_queries))
             
         qs = qs[:limit]
         #print "QS:", qs
         structured_data = []
+        added_ids = []
         for item in qs:
             #print u'handling: %s' % item
             wrapped_item = Wrapper(item)
             try:
-                structured_data.append({
-                            'identifier': wrapped_item.identifier(),
-                            'title':wrapped_item.title(),
-                            'description':wrapped_item.description(),
-                            'thumbnail_url': wrapped_item.thumbnail_url(),
-                        })
+                if not wrapped_item.identifier() in added_ids:
+                    structured_data.append({
+                                'identifier': wrapped_item.identifier(),
+                                'title':wrapped_item.title(),
+                                'description':wrapped_item.description(),
+                                'thumbnail_url': wrapped_item.thumbnail_url(),
+                            })
+                    added_ids.append(wrapped_item.identifier())
             except Exception, e:
-                print e
+                print u"Something went wrong while handling a search wrapper: %s" % e
         ##print data
         #pprint(structured_data)
         if len(structured_data)>0:
