@@ -26,7 +26,7 @@ setup(
     license = 'BSD',
     platforms=['OS Independent'],
     description = DESCRIPTION,
-    long_description = read('README'),
+    long_description = read('README.rst'),
     author = 'Stefan Foulis',
     author_email = 'stefan@foulis.ch',
     packages=find_packages(exclude=['ez_setup']),
