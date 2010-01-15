@@ -6,13 +6,11 @@ from django.db.models.query import QuerySet
 from django.db.models import ForeignKey
 from django.utils.safestring import mark_safe 
 from django.utils.encoding import smart_str, smart_unicode
-from StdSuites.Standard_Suite import starts_with
 import operator
 from django.http import HttpResponse, HttpResponseNotFound
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentTypeManager, ContentType
 from django.conf import settings
-from pprint import pprint
 
 from widgetry.utils import traverse_object
 from widgetry import signals
