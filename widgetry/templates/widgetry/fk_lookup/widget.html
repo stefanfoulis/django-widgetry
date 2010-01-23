@@ -1,71 +1,27 @@
+<span class="fkautocomplete_widget">
+<input type="text" id="id_{{ name }}" value="{{ value }}" name="{{ name }}" />
+{# <input type="text" id="lookup_{{ name }}" value="{{ label }}" /> #}
+{# <a href="#" id="del_{{ name }}"><img src="{{ admin_media_prefix }}img/admin/icon_deletelink.gif" /></a> #}
+{# <a href="#" id="del_{{ name }}" style="background-image: url({{ admin_media_prefix }}img/admin/icon_deletelink.gif);">&nbsp;</a> #}
+
+<script type="text/javascript">
+	$("#id_{{ name }}").fkAutocomplete({
+		search_url: '{{ search_url }}',
+		initialLabel:'{{ label }}',
+		content_type_id:'{{ content_type_id }}',
+		admin_media_prefix:'{{ admin_media_prefix }}'{% if is_generic_lookup %},
+		is_generic_lookup: true,
+		add_urls: {{ content_type_info_json|safe }}{% endif %}
+	});
+</script>
+
 <style type="text/css" media="screen">
     #lookup_{{ name }} {
         padding-right:16px;
         background: url({{ admin_media_prefix }}img/admin/selector-search.gif) no-repeat right;
     };
     #del_{{ name }} {
-        display: none;
+		
     };
 </style>
-
-<input type="hidden" id="id_{{ name }}" value="{{ value }}" name="{{ name }}" />
-<input type="text" id="lookup_{{ name }}" value="{{ label }}" />
-<a href="#" id="del_{{ name }}"><img src="{{ admin_media_prefix }}img/admin/icon_deletelink.gif" /></a>
-
-<script type="text/javascript">
-    if ($('#lookup_{{ name }}').val()) {
-        $('#del_{{ name }}').show()
-    };
-    $('#lookup_{{ name }}').autocomplete('{{ search_url }}', {
-		dataType: "json",
-		//cacheLength: 1,
-		max: 50,
-		//mustMatch: true,
-		width: 300,
-		matchSubset: false, {# if its true there is a runtime error in autocomplete #}
-		parse: function(data) {
-			return $.map(data, function(row) {
-					return {
-						data: row,
-						value: row.name,
-						result: row.title
-					}
-			});
-		}, 
-		formatItem: function(item,i,n,search_term) {
-			r = '';
-			if (item.thumbnail_url) {
-				r += '<img class="item_thumbnail" src="' + item.thumbnail_url + '" alt="" />';
-			}
-			r += '<div class="item_title">' + item.title + '</div>' + '  <div class="item_description">' + item.description + '</div></div>' ;
-			return r;
-		},
-		extraParams: {
-			{% if is_generic_lookup %}content_type_id: function() { return $("#{{ content_type_field_name }}").val(); }
-			{% else %}content_type_id: '{{ content_type_id }}'
-			{% endif %}
-        },
-		highlight: function(value, term) {
-			return value.replace(new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + term.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1").replace(" ", "|")  + ")(?![^<>]*>)(?![^&;]+;)", "gi"), "<strong>$1</strong>");
-		},
-    }).result(function(event, item) {
-        if (item) {
-            $('#id_{{ name }}').val(item.identifier);
-            $('#del_{{ name }}').show();
-        }
-    });
-    $('#del_{{ name }}').click(function(ele, event) {
-        $('#id_{{ name }}').val('');
-        $('#del_{{ name }}').hide();
-        $('#lookup_{{ name }}').val('');
-		return false;
-    });
-	{% if is_generic_lookup %}
-    $('#{{ content_type_field_name }}').change(function(){
-        $('#id_{{ name }}').val('');
-        $('#del_{{ name }}').hide();
-        $('#lookup_{{ name }}').val('');
-		$('#lookup_{{ name }}').flushCache();
-    });
-	{% endif %}
-</script>
+</span>

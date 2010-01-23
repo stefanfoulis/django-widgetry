@@ -123,28 +123,25 @@ class Search(object):
         Wrapper = self.get_wrapper(Model)
         #print Wrapper
         qs = Model._default_manager.all()
-        #print qs
-        for bit in query_string.split():
-            or_queries = []
-            #print bit
-            for field_name in Wrapper.search_fields:
-                #print u"   %s" % field_name
-                field_qs = {}
-                if not field_name.endswith('__icontains'):
-                    field_qs['%s__icontains' % field_name] = smart_str(bit)
-                else:
-                    field_qs[field_name] = smart_str(bit)
-                or_queries.append(Q(**field_qs))
-                #print field_qs
-            #other_qs = QuerySet(Model)
-            #other_qs.dup_select_related(qs)
-            #other_qs = other_qs.filter(reduce(operator.or_, or_queries))
-            #qs = qs & other_qs
-            # other approach
-            #print or_queries
-            qs = qs.filter(reduce(operator.or_, or_queries))
+        
+        obj_id = request.REQUEST.get('id',None)
+        if obj_id:
+            # a specific obj was provided. return just that
+            qs = qs.filter(id=obj_id)
+        else:
+            for bit in query_string.split():
+                or_queries = []
+                #print bit
+                for field_name in Wrapper.search_fields:
+                    field_qs = {}
+                    if not field_name.endswith('__icontains'):
+                        field_qs['%s__icontains' % field_name] = smart_str(bit)
+                    else:
+                        field_qs[field_name] = smart_str(bit)
+                    or_queries.append(Q(**field_qs))
+                qs = qs.filter(reduce(operator.or_, or_queries))
             
-        qs = qs[:limit]
+            qs = qs[:limit]
         #print "QS:", qs
         structured_data = []
         added_ids = []

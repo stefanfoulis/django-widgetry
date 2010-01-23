@@ -1,3 +1,4 @@
+from django.utils import simplejson
 from django import forms
 from django.forms import widgets
 from django.core.urlresolvers import reverse
@@ -39,6 +40,12 @@ class FkLookup(widgets.Widget):
             self.wrapper = search.get_wrapper(self.destination_model)
             #app_label = self.content_type.app_label
             #model_name = self.content_type.model
+        self.content_type_info = {}
+        for model_class, wrapper in search.wrappers.items():
+            #new_q = Q(app_label = model_class._meta.app_name, )
+            content_type = ContentType.objects.get_for_model(model_class)
+            # TODO: check for add permissions. hard to do without the request :-(
+            self.content_type_info[content_type.id] = {'add_url': reverse('admin:%s_%s_add' % (content_type.app_label, content_type.model))}
         self.show_edit = show_edit
         super(FkLookup, self).__init__(attrs)
     
@@ -72,18 +79,19 @@ class FkLookup(widgets.Widget):
             label = self.label_for_value(value)
         else:
             label = u''
-        # allow the object browing popup 
+        # allow the object browsing popup 
         if (self.show_edit):
             enable_edit = u'true'
         else:
             enable_edit = u'false'
         if self.content_type:
             content_type_id = self.content_type.pk
-            
         if value is None:
             value = ''
         else:
             value = str(value)
+        content_type_info = self.content_type_info
+        content_type_info_json = simplejson.dumps(content_type_info)
         context = Context(locals())
         context.update(extra_context)
         r = template.render(context)
@@ -92,13 +100,14 @@ class FkLookup(widgets.Widget):
         
     class Media:
         css = {
-            'all': ('/media/javascript/jquery/external/jquery-autocomplete/jquery.autocomplete-django.css',)
+            'all': ('/media/widgetry/jquery.fkautocomplete.css',)
         }
         js = (
             '/media/cms/js/lib/jquery.js',
             '/media/javascript/jquery/external/bgiframe/jquery.bgiframe.min.js',
             '/media/javascript/jquery/external/jquery-autocomplete/lib/jquery.ajaxQueue.js',
-            '/media/javascript/jquery/external/jquery-autocomplete/jquery.autocomplete.js'
+            '/media/javascript/jquery/external/jquery-autocomplete/jquery.autocomplete.js',
+            '/media/widgetry/jquery.fkautocomplete.js',
         )
 
 class GenericFkLookup(FkLookup):
