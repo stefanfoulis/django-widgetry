@@ -107,7 +107,7 @@ class FkLookup(widgets.Widget):
             '/media/javascript/jquery/external/bgiframe/jquery.bgiframe.min.js',
             '/media/javascript/jquery/external/jquery-autocomplete/lib/jquery.ajaxQueue.js',
             '/media/javascript/jquery/external/jquery-autocomplete/jquery.autocomplete.js',
-            '/media/widgetry/jquery.fkautocomplete.js',
+            'widgetry/jquery.fkautocomplete.js',
         )
 
 class GenericFkLookup(FkLookup):

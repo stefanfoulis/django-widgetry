@@ -208,9 +208,9 @@ class ModelAdminWithTabs(admin.ModelAdmin):
                 formsets.append(formset)
         
         # --start--
-        adminForm = Tabset(form, self.tabs, self.prepopulated_fields, 
-                           self.get_readonly_fields(request),
-                           model_admin=self)
+        adminForm = Tabset(form, list(self.get_fieldsets(request)),
+            self.prepopulated_fields, self.get_readonly_fields(request),
+            model_admin=self)
         # --original--
 #         adminForm = helpers.AdminForm(form, list(self.get_fieldsets(request)), self.prepopulated_fields)
         # --end--
@@ -327,9 +327,9 @@ class ModelAdminWithTabs(admin.ModelAdmin):
                                   queryset=inline.queryset(request))
                 formsets.append(formset)
 
-        adminForm = Tabset(form, self.tabs, self.prepopulated_fields,
-                           self.get_readonly_fields(request, obj),
-                           model_admin=self)
+        adminForm = Tabset(form, self.get_fieldsets(request, obj),
+            self.prepopulated_fields, self.get_readonly_fields(request, obj),
+model_admin=self)
         # --original--
 #         adminForm = helpers.AdminForm(form, self.get_fieldsets(request, obj),
 #            self.prepopulated_fields, self.get_readonly_fields(request, obj),
