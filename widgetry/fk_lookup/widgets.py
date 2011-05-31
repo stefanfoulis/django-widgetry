@@ -100,14 +100,14 @@ class FkLookup(widgets.Widget):
         
     class Media:
         css = {
-            'all': ('/media/widgetry/jquery.fkautocomplete.css',)
+            'all': ('/static/widgetry/jquery.fkautocomplete.css',)
         }
         js = (
-            '/media/cms/js/lib/jquery.js',
-            '/media/javascript/jquery/external/bgiframe/jquery.bgiframe.min.js',
-            '/media/javascript/jquery/external/jquery-autocomplete/lib/jquery.ajaxQueue.js',
-            '/media/javascript/jquery/external/jquery-autocomplete/jquery.autocomplete.js',
-            '/media/widgetry/jquery.fkautocomplete.js',
+            '/static/cms/js/lib/jquery.js',
+            '/static/jquery/external/bgiframe/jquery.bgiframe.min.js',
+            '/static/jquery/external/jquery-autocomplete/lib/jquery.ajaxQueue.js',
+            '/static/jquery/external/jquery-autocomplete/jquery.autocomplete.js',
+            '/static/widgetry/jquery.fkautocomplete.js',
         )
 
 class GenericFkLookup(FkLookup):

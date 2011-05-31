@@ -11,6 +11,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import csrf_protect
+from cms.admin.placeholderadmin import PlaceholderAdmin
 
 try:
     set
@@ -135,7 +136,7 @@ class Tab(helpers.AdminForm):
                       
         
 
-class ModelAdminWithTabs(admin.ModelAdmin):
+class ModelAdminWithTabs(PlaceholderAdmin):
     tabs = []
 
     @csrf_protect_m
