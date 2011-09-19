@@ -5,7 +5,7 @@
 {# <a href="#" id="del_{{ name }}" style="background-image: url({{ admin_media_prefix }}img/admin/icon_deletelink.gif);">&nbsp;</a> #}
 
 <script type="text/javascript">
-	$("#id_{{ name }}").fkAutocomplete({
+	jQuery("#id_{{ name }}").fkAutocomplete({
 		search_url: '{{ search_url }}',
 		initialLabel:'{{ label }}',
 		content_type_id:'{{ content_type_id }}',
