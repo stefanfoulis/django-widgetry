@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import helpers
+from django.core.exceptions import ImproperlyConfigured
+
 try:
     set
 except NameError:
@@ -41,9 +43,9 @@ class Tabset(object):
         return media
     media = property(_media)
     
-    def get_tab_that_has_inline(self, inline_class_name):
+    def get_tab_for_inline(self, inline):
         for tab in self:
-            if inline_class_name in tab.inline_names:
+            if inline in tab.inlines:
                 return tab
         return None
         
@@ -66,8 +68,8 @@ class Tab(helpers.AdminForm):
         } for field_name, dependencies in prepopulated_fields.items()]
         self.model_admin = model_admin
         self.readonly_fields = readonly_fields
-        self.inline_names = inlines
-        self.inlines = [] # they are added in change_view()
+        self.inlines = inlines
+        self.inline_admin_formsets = []  # will be populated in ModelAdminWithTabs.render_change_form
         
         self.classes = u' '.join(classes)
         self.description = description
@@ -75,8 +77,8 @@ class Tab(helpers.AdminForm):
     def has_errors(self):
         if not hasattr(self,'_has_errors'):
             self._has_errors = False
-            for inline in self.inlines:
-                if inline.formset.is_bound and not inline.formset.is_valid():
+            for inline_admin_formset in self.inline_admin_formsets:
+                if inline_admin_formset.formset.is_bound and not inline_admin_formset.formset.is_valid():
                     self._has_errors = True
                     break
             for fieldset in self:
@@ -100,7 +102,21 @@ class ModelAdminWithTabs(admin.ModelAdmin):
     tabs = []
 
     def __init__(self, model, admin_site):
+        if self.inlines:
+            raise ImproperlyConfigured('please define inlines inside tabs')
         super(ModelAdminWithTabs, self).__init__(model, admin_site)
+        # overwrite self.inline_instances with the real stuff
+        self.inline_instances = []
+        for inline_class in self._extract_inlines_from_tabs():
+            inline_instance = inline_class(self.model, self.admin_site)
+            self.inline_instances.append(inline_instance)
+
+    def _extract_inlines_from_tabs(self):
+        inlines = []
+        for name, opts in self.tabs:
+            # get directly defined inlines
+            inlines += opts.get('inlines', [])
+        return inlines
 
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
         """
@@ -116,9 +132,9 @@ class ModelAdminWithTabs(admin.ModelAdmin):
             form, self.tabs, self.prepopulated_fields, self.get_readonly_fields(request), model_admin=self)
 
         for inline_admin_formset in inline_admin_formsets:
-            tab = adminForm.get_tab_that_has_inline(inline_admin_formset.opts.__class__.__name__)
+            tab = adminForm.get_tab_for_inline(inline_admin_formset.opts.__class__)
             if not tab==None:
-                tab.inlines.append(inline_admin_formset)
+                tab.inline_admin_formsets.append(inline_admin_formset)
         context.update({
             'adminform': adminForm,
             'inline_admin_formsets': []
