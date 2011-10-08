@@ -10,6 +10,7 @@ from django.contrib.contenttypes.models import ContentType, ContentTypeManager
 from django.db.models import OneToOneField, ForeignKey
 from widgetry.views import search
 from django.template import loader, Template, Context
+from django.conf import settings
 
 from pprint import pprint
 
@@ -100,14 +101,15 @@ class FkLookup(widgets.Widget):
         
     class Media:
         css = {
-            'all': ('/media/widgetry/jquery.fkautocomplete.css',)
+            'all': ('/static/widgetry/jquery.fkautocomplete.css',)
         }
         js = (
-            '/media/cms/js/lib/jquery.js',
-            '/media/javascript/jquery/external/bgiframe/jquery.bgiframe.min.js',
-            '/media/javascript/jquery/external/jquery-autocomplete/lib/jquery.ajaxQueue.js',
-            '/media/javascript/jquery/external/jquery-autocomplete/jquery.autocomplete.js',
-            'widgetry/jquery.fkautocomplete.js',
+            '/static/jquery/jquery.js',
+            # settings.ADMIN_MEDIA_PREFIX + 'js/jquery.min.js',
+            '/static/jquery/external/bgiframe/jquery.bgiframe.min.js',
+            '/static/jquery/external/jquery-autocomplete/lib/jquery.ajaxQueue.js',
+            '/static/jquery/external/jquery-autocomplete/jquery.autocomplete.js',
+            '/static/widgetry/jquery.fkautocomplete.js',
         )
 
 class GenericFkLookup(FkLookup):
