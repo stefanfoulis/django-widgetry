@@ -51,10 +51,10 @@
 	{% for tab in adminform %}
 	<div id="tab_{{ tab.name|slugify }}">
 		{% for fieldset in tab %}
-		  {% include "admin/includes/fieldset.html" %}
+			{% include "admin/includes/fieldset.html" %}
 		{% endfor %}
-		{% for inline_admin_formset in tab.inlines %}
-		    {% include inline_admin_formset.opts.template %}
+		{% for inline_admin_formset in tab.inline_admin_formsets %}
+			{% include inline_admin_formset.opts.template %}
 		{% endfor %}
 	</div>
 	{% endfor %}

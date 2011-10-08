@@ -39,7 +39,7 @@ class SearchItemWrapper(object):
             # resize the image
             return None
         else:
-            return None#'/media/images/document_icon_pdf.gif'
+            return None
 
 ATTRIBUTES = [
     'identifier',
