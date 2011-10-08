@@ -47,16 +47,15 @@ class Tabset(object):
    
     '''
     has_tabs = True
-    def __init__(self, form, tabs, prepopulated_fields, readonly_fields,
-                 model_admin):
+    def __init__(self, form, tabs, prepopulated_fields, readonly_fields, model_admin):
         self.form = form
         self.tabs = []
         for name, options in tabs:
-#            tab_fieldsets = options.pop('fieldsets', ())
-#            tab_inlines = options.pop('inlines', ())
+            tab_fieldsets = options.pop('fieldsets', ())
+            tab_inlines = options.pop('inlines', ())
             self.tabs.append(Tab(self.form, name=name, 
-#                                 fieldsets=tab_fieldsets,
-#                                 inlines=tab_inlines,
+                                 fieldsets=tab_fieldsets,
+                                 inlines=tab_inlines,
                                  readonly_fields=readonly_fields,
                                  model_admin=model_admin,
                                  **options))
@@ -208,7 +207,7 @@ class ModelAdminWithTabs(admin.ModelAdmin):
                 formsets.append(formset)
         
         # --start--
-        adminForm = Tabset(form, list(self.get_fieldsets(request)),
+        adminForm = Tabset(form, self.tabs,
             self.prepopulated_fields, self.get_readonly_fields(request),
             model_admin=self)
         # --original--
@@ -262,7 +261,6 @@ class ModelAdminWithTabs(admin.ModelAdmin):
         # ----start
         # ----end
         """
-        
         if not self.tabs:
             return super(ModelAdminWithTabs, self).change_view(request, 
                                 object_id, extra_context=extra_context)
@@ -327,9 +325,8 @@ class ModelAdminWithTabs(admin.ModelAdmin):
                                   queryset=inline.queryset(request))
                 formsets.append(formset)
 
-        adminForm = Tabset(form, self.get_fieldsets(request, obj),
-            self.prepopulated_fields, self.get_readonly_fields(request, obj),
-model_admin=self)
+        adminForm = Tabset(form, self.tabs,
+            self.prepopulated_fields, self.get_readonly_fields(request, obj), model_admin=self)
         # --original--
 #         adminForm = helpers.AdminForm(form, self.get_fieldsets(request, obj),
 #            self.prepopulated_fields, self.get_readonly_fields(request, obj),
