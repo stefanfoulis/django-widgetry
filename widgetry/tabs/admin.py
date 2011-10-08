@@ -102,10 +102,13 @@ class ModelAdminWithTabs(admin.ModelAdmin):
     tabs = []
 
     def __init__(self, model, admin_site):
+        if not self.tabs:
+            raise ImproperlyConfigured('%s.tabs must be defined' % self.__class__.__name__)
         if self.inlines:
-            raise ImproperlyConfigured('please define inlines inside tabs')
+            raise ImproperlyConfigured('inlines must be defined inside %s.tabs' % self.__class__.__name__)
         super(ModelAdminWithTabs, self).__init__(model, admin_site)
-        # overwrite self.inline_instances with the real stuff
+
+        # populate self.inline_instances with all inlines defined inside tabs.
         self.inline_instances = []
         for inline_class in self._extract_inlines_from_tabs():
             inline_instance = inline_class(self.model, self.admin_site)
@@ -114,7 +117,6 @@ class ModelAdminWithTabs(admin.ModelAdmin):
     def _extract_inlines_from_tabs(self):
         inlines = []
         for name, opts in self.tabs:
-            # get directly defined inlines
             inlines += opts.get('inlines', [])
         return inlines
 
