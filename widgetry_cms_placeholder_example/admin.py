@@ -1,8 +1,6 @@
 #-*- coding: utf-8 -*-
 from django.contrib import admin
-from django.contrib.admin.options import TabularInline, StackedInline
 from widgetry_cms_placeholder_example.models import BlogPost
-from widgetry.tabs.admin import ModelAdminWithTabs
 from widgetry.tabs.placeholderadmin import ModelAdminWithTabsAndCMSPlaceholder
 from cms.admin.placeholderadmin import PlaceholderAdmin
 

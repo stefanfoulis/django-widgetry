@@ -1,6 +1,5 @@
 #-*- coding: utf-8 -*-
 from cms.admin.placeholderadmin import PlaceholderAdmin
-from copy import deepcopy
 from widgetry.tabs.admin import ModelAdminWithTabs
 
 class ModelAdminWithTabsAndCMSPlaceholder(ModelAdminWithTabs, PlaceholderAdmin):
