@@ -56,10 +56,10 @@ class WrapperFactory(object):
     
     MyWrapperClass = my_factory.build('DynamicClassName', ...)
     '''
-    
     def __init__(self, product_superclass, product_attributes):
         self.product_superclass = product_superclass
         self.product_attributes = product_attributes
+
     def build(self, model_name, search_fields, custom_attributes):
         methods = {}
         for name, value in custom_attributes.items():

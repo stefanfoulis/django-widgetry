@@ -1,18 +1,14 @@
+#-*- coding: utf-8 -*-
 from django.utils import simplejson
-from django import forms
 from django.forms import widgets
 from django.core.urlresolvers import reverse
-from django.conf import settings
-from django.utils.safestring import mark_safe
 from django.utils.text import truncate_words
 
-from django.contrib.contenttypes.models import ContentType, ContentTypeManager
-from django.db.models import OneToOneField, ForeignKey
+from django.contrib.contenttypes.models import ContentType
 from widgetry.views import search
 from django.template import loader, Template, Context
 from django.conf import settings
 
-from pprint import pprint
 
 class FkLookup(widgets.Widget):
     """
