@@ -1,8 +1,5 @@
 <span class="fkautocomplete_widget">
 <input type="text" id="id_{{ name }}" value="{{ value }}" name="{{ name }}" />
-{# <input type="text" id="lookup_{{ name }}" value="{{ label }}" /> #}
-{# <a href="#" id="del_{{ name }}"><img src="{{ admin_media_prefix }}img/admin/icon_deletelink.gif" /></a> #}
-{# <a href="#" id="del_{{ name }}" style="background-image: url({{ admin_media_prefix }}img/admin/icon_deletelink.gif);">&nbsp;</a> #}
 
 <script type="text/javascript">
 	jQuery("#id_{{ name }}").fkAutocomplete({
@@ -16,12 +13,10 @@
 </script>
 
 <style type="text/css" media="screen">
-    #lookup_{{ name }} {
-        padding-right:16px;
-        background: url({{ admin_media_prefix }}img/admin/selector-search.gif) no-repeat right;
-    };
-    #del_{{ name }} {
-		
-    };
+	#lookup_{{ name }} {
+		padding-right:16px;
+		background: url({{ admin_media_prefix }}img/admin/selector-search.gif) no-repeat right;
+	};
+	#del_{{ name }} {};
 </style>
 </span>

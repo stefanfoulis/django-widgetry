@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from widgetry.views import search
 from django.template import loader, Template, Context
 from django.conf import settings
-
+from widgetry.config import JQUERY_URLS, STATICMEDIA_PREFIX
 
 class FkLookup(widgets.Widget):
     """
@@ -97,15 +97,13 @@ class FkLookup(widgets.Widget):
         
     class Media:
         css = {
-            'all': ('/static/widgetry/jquery.fkautocomplete.css',)
+            'all': (STATICMEDIA_PREFIX + 'css/jquery.fkautocomplete.css',)
         }
         js = (
-            '/static/jquery/jquery.js',
-            # settings.ADMIN_MEDIA_PREFIX + 'js/jquery.min.js',
-            '/static/jquery/external/bgiframe/jquery.bgiframe.min.js',
-            '/static/jquery/external/jquery-autocomplete/lib/jquery.ajaxQueue.js',
-            '/static/jquery/external/jquery-autocomplete/jquery.autocomplete.js',
-            '/static/widgetry/jquery.fkautocomplete.js',
+            JQUERY_URLS['admincompat'],
+            JQUERY_URLS['core'],
+            JQUERY_URLS['plugins.fkautocomplete'],
+            JQUERY_URLS['plugins.autocomplete'],
         )
 
 class GenericFkLookup(FkLookup):
