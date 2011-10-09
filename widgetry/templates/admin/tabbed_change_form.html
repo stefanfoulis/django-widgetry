@@ -4,7 +4,7 @@
 {% block extrahead %}
 {{ block.super }}
 <script type="text/javascript">
-  $(document).ready(function(){
+  jQuery(document).ready(function($){
     $("#tabs").tabs({
 		select: function(event, ui) {
 			var form = $('form#{{ opts.module_name }}_form');

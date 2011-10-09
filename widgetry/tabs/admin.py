@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import helpers
 from django.core.exceptions import ImproperlyConfigured
+from widgetry.config import JQUERY_URLS, STATICMEDIA_PREFIX
 
 try:
     set
@@ -163,9 +164,11 @@ class ModelAdminWithTabs(admin.ModelAdmin):
 
     class Media:
         css = {
-            "all": ("widgetry/tabs/css/jquery-ui-1.8.10.custom.css",)
+            "all": (STATICMEDIA_PREFIX + "css/smoothness/jquery-ui-1.7.3.custom.css",)
         }
         js = (
-              "widgetry/tabs/js/jquery-1.4.4.min.js",
-              "widgetry/tabs/js/jquery-ui-1.8.10.custom.min.js",
+              JQUERY_URLS['admincompat'],
+              JQUERY_URLS['core'],
+              JQUERY_URLS['ui.core'],
+              JQUERY_URLS['ui.tabs'],
         )
