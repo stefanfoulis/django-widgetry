@@ -1,6 +1,23 @@
 #-*- coding: utf-8 -*-
 from django.db import models
 from widgetry.views import search
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
+
+class Avatar(models.Model):
+    user = models.ForeignKey(User)
+    image = models.ImageField(upload_to='avatars')
+
+
+class Link(models.Model):
+    name = models.CharField(max_length=255)
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+
+    def __unicode__(self):
+        return self.name
 
 
 class SimpleModel(models.Model):
