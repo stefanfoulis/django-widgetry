@@ -110,10 +110,26 @@ class ModelAdminWithTabs(admin.ModelAdmin):
         super(ModelAdminWithTabs, self).__init__(model, admin_site)
 
         # populate self.inline_instances with all inlines defined inside tabs.
-        self.inline_instances = []
+
+        # We provide two different ways of doing this here.
+        # The original way populates them in Django < 1.4.
+        # In Django 1.4, a different method is required. 
+        #
+        # Since
+        # https://github.com/django/django/commit/b1b1da1eac93297503c04b8394fb98e38f552f5f
+        # django.contrib.admin.options.ModelAdmin.__init__() no longer takes responsibility 
+        # for inlines.
+        #
+        # Instead, a get_inline_instances() method takes care of it.
+        
+        # the original, for backwards compatibility
+        self.inline_instances = []        
         for inline_class in self._extract_inlines_from_tabs():
             inline_instance = inline_class(self.model, self.admin_site)
             self.inline_instances.append(inline_instance)
+
+        # the way for Django 1.4
+        self.inlines = self._extract_inlines_from_tabs()
 
     def _extract_inlines_from_tabs(self):
         inlines = []
