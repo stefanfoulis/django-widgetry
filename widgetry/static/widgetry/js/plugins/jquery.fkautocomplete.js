@@ -122,12 +122,14 @@
 					$('#lookup_' + input_obj_name).val('');
 					$('#lookup_' + input_obj_name).flushCache();
 					var current_content_type_id = $('#' + content_type_obj_id).val();
-					if (config.add_urls[config.content_type_id].add_url) {
-						$('#add_id_' + input_obj_name).attr('href', config.add_urls[current_content_type_id].add_url);
-						$('#add_id_' + input_obj_name).show();
-					} else {
-						$('#add_id_' + input_obj_name).hide();
-					}
+                    if (input_obj_id.val) {
+                        if (config.add_urls[config.content_type_id].add_url) {
+    						$('#add_id_' + input_obj_name).attr('href', config.add_urls[current_content_type_id].add_url);
+    						$('#add_id_' + input_obj_name).show();
+    					} else {
+    						$('#add_id_' + input_obj_name).hide();
+    					}
+    				}	
 				});
 				if (config.content_type_id) {
 					$('#add_id_' + input_obj_name).attr('href', config.add_urls[config.content_type_id].add_url);
