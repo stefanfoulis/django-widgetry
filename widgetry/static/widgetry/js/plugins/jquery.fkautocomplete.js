@@ -95,7 +95,7 @@
 			var name = main_input.attr('name');
 			main_input.hide();
 			$(this).after(
-				'<input type="text" id="lookup_' + input_obj_name + '" value="' + config.initialLabel + '" />' +
+				'<input size=25 type="text" id="lookup_' + input_obj_name + '" value="' + config.initialLabel + '" />' +
 					' <a href="#" id="del_' + input_obj_name + '" style="display: none;"><img width="10" height="10" alt="Remove" src="' + config.admin_media_prefix + 'img/icon_deletelink.gif" /></a>' +
 					' <a onclick="return showAddAnotherPopup(this);" id="add_id_' + input_obj_name + '" class="add-another" href="#" style="display: none;"> <img width="10" height="10" alt="Add Another" src="' + config.admin_media_prefix + 'img/icon_addlink.gif"></a>'
 			);
