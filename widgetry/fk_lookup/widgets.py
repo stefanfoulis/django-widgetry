@@ -70,7 +70,7 @@ class FkLookup(widgets.Widget):
         #print "BEGIN RENDER %s: %s" % (name, value)
         template = loader.select_template(['widgetry/fk_lookup/widget.html'])
         search_url =  reverse('widgetry-search')
-        admin_media_prefix = settings.ADMIN_MEDIA_PREFIX
+        admin_media_prefix = getattr(settings, 'ADMIN_MEDIA_PREFIX', None) or ''.join([settings.STATIC_URL, 'admin/'])
         # the label
         if value:
             label = self.label_for_value(value)
