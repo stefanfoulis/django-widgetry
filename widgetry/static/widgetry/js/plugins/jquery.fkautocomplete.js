@@ -53,7 +53,7 @@
 			initialLabel: "none",
 			content_type_id: '',
 			add_urls: {},
-			admin_media_prefix: '/static/admin/'
+			admin_media_prefix: window.__admin_media_prefix__
 		}
 		if (settings) $.extend(config, settings);
 		var autocomplete_config = {
