@@ -34,6 +34,7 @@ setup(
     package_data={
         '': ['*.txt', '*.rst',],
     },
+    include_package_data = True,
     package_dir = {
         APP_NAME:APP_NAME,
     },
