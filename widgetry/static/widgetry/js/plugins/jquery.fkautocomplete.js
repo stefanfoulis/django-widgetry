@@ -49,7 +49,7 @@
 			is_generic_lookup: false,
 			search_url: "",
 			max: 50,
-			width: 300,
+			width: 800,
 			initialLabel: "none",
 			content_type_id: '',
 			add_urls: {},
@@ -74,15 +74,22 @@
 				r = '';
 				if (item.thumbnail_url) {
 					r += '<img class="item_thumbnail" src="' + item.thumbnail_url + '" alt="" />';
-				}
-				r += '<div class="item_title">' + item.title + '</div>' + '  <div class="item_description">' + item.description + '</div></div>';
+				    }
+				r += '<div class="item_title">' + item.title + '</div>';
+                r += '<div class="item_summary">' + item.summary + '</div>';
+				if (item.admin_metadata) {
+                    r += '<div class="item_admin_metadata">' + item.admin_metadata + '</div>';
+                }
+				if (item.url) {
+                    r += '<span class="item_url">' + item.url + '</span>';
+                }
 				return r;
 			},
 			extraParams: {
 				content_type_id: config.content_type_id
 			},
 			highlight: function(value, term) {
-				return value.replace(new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + term.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1").replace(" ", "|") + ")(?![^<>]*>)(?![^&;]+;)", "gi"), "<strong>$1</strong>");
+				return value.replace(new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + term.replace(/([\^\$\(\)\[\]\{\}\*\.\+\?\|\\])/gi, "\\$1").replace(" ", "|") + ")(?![^<>]*>)(?![^&;]+;)", "gi"), "<span class='matched'>$1</span>");
 			},
 		}
 		if (config.is_generic_lookup) {
@@ -95,7 +102,7 @@
 			var name = main_input.attr('name');
 			main_input.hide();
 			$(this).after(
-				'<input size=25 type="text" id="lookup_' + input_obj_name + '" value="' + config.initialLabel + '" />' +
+				'<input size=50 type="text" id="lookup_' + input_obj_name + '" value="' + config.initialLabel + '" />' +
 					' <a href="#" id="del_' + input_obj_name + '" style="display: none;"><img width="10" height="10" alt="Remove" src="' + config.admin_media_prefix + 'img/icon_deletelink.gif" /></a>' +
 					' <a onclick="return showAddAnotherPopup(this);" id="add_id_' + input_obj_name + '" class="add-another" href="#" style="display: none;"> <img width="10" height="10" alt="Add Another" src="' + config.admin_media_prefix + 'img/icon_addlink.gif"></a>'
 			);
@@ -129,7 +136,7 @@
     					} else {
     						$('#add_id_' + input_obj_name).hide();
     					}
-    				}	
+    				}
 				});
 				if (config.content_type_id) {
 					$('#add_id_' + input_obj_name).attr('href', config.add_urls[config.content_type_id].add_url);

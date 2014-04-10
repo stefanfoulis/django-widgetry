@@ -20,39 +20,63 @@
 	padding: 2px 5px;
 	cursor: default;
 	display: block;
-	/* 
-	if width will be 100% horizontal scrollbar will apear 
+	/*
+	if width will be 100% horizontal scrollbar will apear
 	when scroll mode will be used
 	*/
 	/*width: 100%;*/
 	font: menu;
-	/* 
-	it is very important, if line-height not setted or setted 
+	/*
+	it is very important, if line-height not setted or setted
 	in relative units scroll will be broken in firefox
 	*/
 	line-height: 16px;
 	overflow: hidden;
-	
+
 	border-bottom:1px solid #EEEEEE;
 	font-family:"Lucida Grande",Verdana,Arial,sans-serif;
 	font-size:11px;
 	line-height:13px;
 }
 .ac_results li .item_title {
+    font-weight: bold;
 	font-size: 12px;
 	color: #333333;
 }
-.ac_results li .item_description {
-	color: #333333;
-	font-size: 10px;
+.ac_results li .item_url {
+    font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console",
+        "Lucida Sans Typewriter", "DejaVu Sans Mono",
+        "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco,
+        "Courier New", Courier, monospace;
+        background: #555;
+    color: white;
+	font-size: 11px;
+    clear: both;
+    float: right;
+    padding: 1px 2px;
+    border-radius: 5px 0 0 0;
+}
+
+.ac_results li .item_summary {
+    margin: 4px 2em;
+    padding-left: .5em;
+    border-left: 1px solid black;
+}
+
+.ac_results li .item_admin_metadata {
+    font-weight: lighter;
+    color: black;
 }
 
 .ac_results li img {
 	float: right;
 }
 
-.ac_loading {
-	background: white url('../indicator.gif') right center no-repeat;
+.ac_results li span.matched {color: #990000;}
+.ac_results li .item_url span.matched {color: #ff6666;}
+
+input.ac_loading {
+	background: url('/static/widgetry/indicator.gif') right center no-repeat!important;
 }
 
 .ac_odd {
