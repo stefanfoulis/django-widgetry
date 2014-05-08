@@ -292,7 +292,7 @@ class Search(object):
         #return HttpResponse(status=404)
         # autocomplete breaks if we return a 404 (it gets handled like
         # a failure)
-        return HttpResponse(simplejson.dumps([]),mimetype='application/json')
+        return HttpResponse(simplejson.dumps([]), mimetype='application/json')
 
     def forbidden(self, request):
         return HttpResponse(status=403)
