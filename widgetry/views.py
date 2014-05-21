@@ -5,6 +5,7 @@ import operator
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+from easy_thumbnails.files import get_thumbnailer
 
 from widgetry.utils import traverse_object
 from widgetry import signals
@@ -18,30 +19,96 @@ def call_if_callable(fnc):
 
 
 class SearchItemWrapper(object):
-    THUMBNAIL_SIZE=int( getattr(settings,'WIDGETRY_FKLOOKUP_THUMBNAIL_SIZE',48) )
+
+    # it's not clear if this is even used!
+    THUMBNAIL_SIZE = int(
+        getattr(settings,'WIDGETRY_FKLOOKUP_THUMBNAIL_SIZE',48)
+        )
+
     def __init__(self, obj):
         self.obj = obj
+
+    # primary key
     def identifier(self):
-        return call_if_callable( getattr( self.obj, 'pk', None ) )
+        return call_if_callable(getattr(self.obj, 'pk', None))
+
+    # should this be allowed to fall back to null?
+    def url(self):
+        url = call_if_callable(getattr(self.obj, 'get_absolute_url', ""))
+        return url[:100] + (url[100:] and '...')
+
+    # the item's link title
     def title(self):
-        return call_if_callable( getattr( self.obj, 'title', smart_unicode(self.obj) ) )
-    def description(self):
-        return call_if_callable( getattr( self.obj, 'description', '' ) )
+        return getattr(
+            self.obj,
+            "admin_identifier",
+            ""
+            ) or smart_unicode(self.obj)
+
+        # call_if_callable(getattr(
+        #     self.obj,
+        #     'title', # should this remain?
+        #     smart_unicode(self.obj))
+        #     )
+
+    # fallbacks so link schemas that don't provide these won't raise errors
     def thumbnail_full_file(self):
         return None
+
     def thumbnail_url(self):
-        file = self.thumbnail_full_file()
-        if file:
-            # resize the image
-            return None
-        else:
-            return None
+        try:
+            size = self.THUMBNAIL_SIZE # which is defined in widgetry, and can be overridden in settings
+            source = self.obj.image.file
+            return get_thumbnailer(source).get_thumbnail({
+                'subject_location': u'',
+                'upscale': True,
+                'crop': True,
+                'size': (size, size)
+            }).url
+        except Exception,e:
+            print "Error in thumbnail_url() in wrapper", e
+            url = None
+        return url
+
+    def summary(self):
+        return call_if_callable(getattr(
+            self.obj,
+            'summary',
+            ''
+            ))
+
+    # other useful disambiguating metadata
+    def admin_metadata(self):
+        return call_if_callable(getattr(
+            self.obj, 'admin_metadata', ""
+            ))
+
+    def metadata(self):
+        return call_if_callable(getattr(
+            self.obj,
+            'metadata',
+            ''
+            ))
+
+
+    #
+    #
+    # # a description or summary
+    # def description(self):
+    #     return call_if_callable(getattr(self.obj, 'description', ''))
+    #
+
+
+
 
 ATTRIBUTES = [
-    'identifier',
-    'title',
-    'description',
-    'thumbnail_url',
+    # 'identifier',
+    # 'title', # should this remain?
+    # 'description',
+    # 'thumbnail_url',
+    # 'admin_metadata',
+    # "url"
+    # 'summary'
 ]
 
 
@@ -83,7 +150,7 @@ class WrapperFactory(object):
         WrapperClass = type(model_name + self.product_superclass.__name__, (self.product_superclass,), methods)
         return WrapperClass
 
-wrapper_factory = WrapperFactory(SearchItemWrapper, ATTRIBUTES)
+# wrapper_factory = WrapperFactory(SearchItemWrapper, ATTRIBUTES)
 
 
 class Search(object):
@@ -156,12 +223,14 @@ class Search(object):
                     structured_data.append({
                                 'identifier': wrapped_item.identifier(),
                                 'title':wrapped_item.title(),
-                                'description':wrapped_item.description(),
+                                'summary':wrapped_item.summary(),
                                 'thumbnail_url': wrapped_item.thumbnail_url(),
+                                'url': wrapped_item.url(),
+                                'admin_metadata': wrapped_item.admin_metadata(),
                             })
                     added_ids.append(wrapped_item.identifier())
             except Exception, e:
-                print u"Something went wrong while handling a search wrapper: %s" % e
+                print u"Something went wrong while handling a search wrapper %s) %s" % (e, wrapped_item)
         ##print data
         #pprint(structured_data)
         if len(structured_data)>0:
@@ -191,7 +260,7 @@ class Search(object):
         if not isinstance(klasses, list):
             klasses = [klasses]
         for klass in klasses:
-            #print "NOW REGISTERING %s (%s)" % (klass, type(klass) )
+            # print "NOW REGISTERING %s (%s)" % (klass, type(klass) )
             signals.wrapper_registration.send(sender=self, klass=klass, wrapper=wrapper)
             self.wrappers[klass] = wrapper
 
@@ -223,7 +292,7 @@ class Search(object):
         #return HttpResponse(status=404)
         # autocomplete breaks if we return a 404 (it gets handled like
         # a failure)
-        return HttpResponse(simplejson.dumps([]),mimetype='application/json')
+        return HttpResponse(simplejson.dumps([]), mimetype='application/json')
 
     def forbidden(self, request):
         return HttpResponse(status=403)
