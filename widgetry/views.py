@@ -35,7 +35,7 @@ class SearchItemWrapper(object):
     # should this be allowed to fall back to null?
     def url(self):
         url = call_if_callable(getattr(self.obj, 'get_absolute_url', ""))
-        return url[:100] + (url[100:] and '...')
+        return url
 
     # the item's link title
     def title(self):
