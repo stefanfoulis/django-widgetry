@@ -16,9 +16,10 @@ Register models that should be searchable (preferrable in ``models.py`` of your 
 	from widgetry.views import search
 	search.register(MyModel, search_fields=['name', 'value'])
 
-``search_fields`` is a list of fieldnames that should be used to search for matches. By default the ``__unicode__``
-representation of the model will be used to display the matches. This can be overridden (to be documented). It is even
-possible to add a thumbnail image to each matched item (to be documented).
+``search_fields`` is a list of fieldnames that should be used to search for
+matches. By default the ``__unicode__`` representation of the model will be
+used to display the matches. This can be overridden (to be documented). It is
+even possible to add a thumbnail image to each matched item (to be documented).
 
 The widget can be defined on forms just like any other widget. If you'd like to override all `ForeignKey` s on a
 ModelAdmin, you can use this trick::

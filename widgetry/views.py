@@ -108,7 +108,8 @@ ATTRIBUTES = [
     # 'thumbnail_url',
     # 'admin_metadata',
     # "url"
-    # 'summary'
+    # 'summary',
+    # 'image'
 ]
 
 
@@ -150,7 +151,7 @@ class WrapperFactory(object):
         WrapperClass = type(model_name + self.product_superclass.__name__, (self.product_superclass,), methods)
         return WrapperClass
 
-# wrapper_factory = WrapperFactory(SearchItemWrapper, ATTRIBUTES)
+wrapper_factory = WrapperFactory(SearchItemWrapper, ATTRIBUTES)
 
 
 class Search(object):
@@ -170,8 +171,7 @@ class Search(object):
         query_string = request.REQUEST.get(query_param, '')
         limit = int(request.REQUEST.get('limit', '50'))
         timestamp = request.REQUEST.get('timestamp', '')
-        #print u"QUERY: %s (limit: %s timestamp: %s)"
-        # % (query_string, limit, timestamp)
+
 
         # find the model to search on
         # an integer
@@ -187,11 +187,8 @@ class Search(object):
                 )
         else:
             return self.not_found(request)
-        #print u"CONTENT TYPE: %s" % content_type
         Model = content_type.model_class()
-        #print Model
         Wrapper = self.get_wrapper(Model)
-        #print Wrapper
         qs = Model._default_manager.all()
 
         obj_id = request.REQUEST.get('id',None)
@@ -201,7 +198,6 @@ class Search(object):
         else:
             for bit in query_string.split():
                 or_queries = []
-                #print bit
                 for field_name in Wrapper.search_fields:
                     field_qs = {}
                     if not field_name.endswith('__icontains'):
@@ -212,11 +208,9 @@ class Search(object):
                 qs = qs.filter(reduce(operator.or_, or_queries))
 
             qs = qs[:limit]
-        #print "QS:", qs
         structured_data = []
         added_ids = []
         for item in qs:
-            #print u'handling: %s' % item
             wrapped_item = Wrapper(item)
             try:
                 if not wrapped_item.identifier() in added_ids:
@@ -231,8 +225,6 @@ class Search(object):
                     added_ids.append(wrapped_item.identifier())
             except Exception, e:
                 print u"Something went wrong while handling a search wrapper %s) %s" % (e, wrapped_item)
-        ##print data
-        #pprint(structured_data)
         if len(structured_data)>0:
             return HttpResponse(
                 simplejson.dumps(structured_data),
@@ -260,12 +252,10 @@ class Search(object):
         if not isinstance(klasses, list):
             klasses = [klasses]
         for klass in klasses:
-            # print "NOW REGISTERING %s (%s)" % (klass, type(klass) )
             signals.wrapper_registration.send(sender=self, klass=klass, wrapper=wrapper)
             self.wrappers[klass] = wrapper
 
     def get_wrapper(self, model_or_string):
-        #print "get wrapper %s" % model_or_string
         if isinstance(model_or_string, str):
             app_label, model_name = model_or_string.split('.')
             content_type = ContentType.objects.get(
@@ -276,13 +266,10 @@ class Search(object):
         else:
             model = model_or_string
         signals.get_wrapper.send(sender=self, model=model)
-        #print "return wrapper for %s" % model
-        #print self.wrappers
         if model in self.wrappers:
             wrapper = self.wrappers[model]
         else:
             wrapper = SearchItemWrapper
-        #print "    wrapper: %s" % wrapper
         return wrapper
 
     def is_registered(self, model):
