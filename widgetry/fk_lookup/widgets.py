@@ -17,10 +17,10 @@ class FkLookup(widgets.Widget):
     Searchable Models must be registered in the search view:
         widgetry.views.search.register()
     """
-    def __init__(self, destination_model, attrs=None, show_edit=False):        
+    def __init__(self, destination_model, attrs=None, show_edit=False):
         if type(destination_model) == ContentType:
             destination_model = destination_model.model_class()
-        
+
         if destination_model is None:
             self.content_type = None
             self.destination_model = None
@@ -38,18 +38,19 @@ class FkLookup(widgets.Widget):
             #app_label = self.content_type.app_label
             #model_name = self.content_type.model
         self.content_type_info = {}
-        for model_class, wrapper in search.wrappers.items():
-            #new_q = Q(app_label = model_class._meta.app_name, )
-            content_type = ContentType.objects.get_for_model(model_class)
-            # TODO: check for add permissions. hard to do without the request :-(
-            self.content_type_info[content_type.id] = {'add_url': reverse('admin:%s_%s_add' % (content_type.app_label, content_type.model))}
+        # for model_class, wrapper in search.wrappers.items():
+        #     #new_q = Q(app_label = model_class._meta.app_name, )
+        #     content_type = ContentType.objects.get_for_model(model_class)
+        #     # TODO: check for add permissions. hard to do without the request :-(
+        #     # print "****", reverse('admin:%s_%s_add' % (content_type.app_label, content_type.model))
+        #     # self.content_type_info[content_type.id] = {'add_url': reverse('admin:%s_%s_add' % (content_type.app_label, content_type.model))}
         self.show_edit = show_edit
         super(FkLookup, self).__init__(attrs)
-    
+
     def label_for_value(self, value):
         """
-        Given a value (the id of the ForeignKey field) evaluate the correct representation
-        text for inside the input field.
+        Given a value (the id of the ForeignKey field) evaluate the correct
+        representation text for inside the input field.
         """
         #print "    the destination model to label %s (%s) with %s" % (self.destination_model, type(self.destination_model), value)
         if not self.destination_model or not self.wrapper:
@@ -64,19 +65,19 @@ class FkLookup(widgets.Widget):
         wrapped_obj = self.wrapper(obj)
         text = wrapped_obj.title()
         return truncate_words(text, 14)
-        
-    
+
+
     def render(self, name, value, attrs=None, extra_context={}):
         #print "BEGIN RENDER %s: %s" % (name, value)
         template = loader.select_template(['widgetry/fk_lookup/widget.html'])
         search_url =  reverse('widgetry-search')
-        admin_media_prefix = settings.ADMIN_MEDIA_PREFIX
+        admin_media_prefix = getattr(settings, 'ADMIN_MEDIA_PREFIX', None) or ''.join([settings.STATIC_URL, 'admin/'])
         # the label
         if value:
             label = self.label_for_value(value)
         else:
             label = u''
-        # allow the object browsing popup 
+        # allow the object browsing popup
         if (self.show_edit):
             enable_edit = u'true'
         else:
@@ -92,9 +93,9 @@ class FkLookup(widgets.Widget):
         context = Context(locals())
         context.update(extra_context)
         r = template.render(context)
-        return r        
-        
-        
+        return r
+
+
     class Media:
         css = {
             'all': (STATICMEDIA_PREFIX + 'css/jquery.fkautocomplete.css',)

@@ -5,9 +5,11 @@ import operator
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+from easy_thumbnails.files import get_thumbnailer
 
 from widgetry.utils import traverse_object
 from widgetry import signals
+
 
 def call_if_callable(fnc):
     if callable(fnc):
@@ -15,39 +17,116 @@ def call_if_callable(fnc):
     else:
         return fnc
 
+
 class SearchItemWrapper(object):
-    THUMBNAIL_SIZE=int( getattr(settings,'WIDGETRY_FKLOOKUP_THUMBNAIL_SIZE',48) )
+
+    # it's not clear if this is even used!
+    THUMBNAIL_SIZE = int(
+        getattr(settings,'WIDGETRY_FKLOOKUP_THUMBNAIL_SIZE',48)
+        )
+
     def __init__(self, obj):
         self.obj = obj
+
+    # primary key
     def identifier(self):
-        return call_if_callable( getattr( self.obj, 'pk', None ) )
+        return call_if_callable(getattr(self.obj, 'pk', None))
+
+    # should this be allowed to fall back to null?
+    def url(self):
+        url = call_if_callable(getattr(self.obj, 'get_absolute_url', ""))
+        return url
+
+    # the item's link title
     def title(self):
-        return call_if_callable( getattr( self.obj, 'title', smart_unicode(self.obj) ) )
-    def description(self):
-        return call_if_callable( getattr( self.obj, 'description', '' ) )
+        return getattr(
+            self.obj,
+            "admin_identifier",
+            ""
+            ) or smart_unicode(self.obj)
+
+        # call_if_callable(getattr(
+        #     self.obj,
+        #     'title', # should this remain?
+        #     smart_unicode(self.obj))
+        #     )
+
+    # fallbacks so link schemas that don't provide these won't raise errors
     def thumbnail_full_file(self):
         return None
+
     def thumbnail_url(self):
-        file = self.thumbnail_full_file()
-        if file:
-            # resize the image
-            return None
-        else:
-            return None
+        try:
+            size = self.THUMBNAIL_SIZE # which is defined in widgetry, and can be overridden in settings
+            source = self.obj.image.file
+            return get_thumbnailer(source).get_thumbnail({
+                'subject_location': u'',
+                'upscale': True,
+                'crop': True,
+                'size': (size, size)
+            }).url
+        except Exception,e:
+            print "Error in thumbnail_url() in wrapper", e
+            url = None
+        return url
+
+    def summary(self):
+        return call_if_callable(getattr(
+            self.obj,
+            'summary',
+            ''
+            ))
+
+    # other useful disambiguating metadata
+    def admin_metadata(self):
+        return call_if_callable(getattr(
+            self.obj, 'admin_metadata', ""
+            ))
+
+    def metadata(self):
+        return call_if_callable(getattr(
+            self.obj,
+            'metadata',
+            ''
+            ))
+
+    # subclasses should override this class method if they need to pre-filter
+    # the items that are returned in autocomplete searches. For example,
+    # cms.Pages exist in draft and published forms, and we don't want both -
+    # so its LinkWrapper subclass should return Q(publisher_is_draft=True)
+    @classmethod
+    def pre_filter(cls):
+        return Q()
+
+
+    #
+    #
+    # # a description or summary
+    # def description(self):
+    #     return call_if_callable(getattr(self.obj, 'description', ''))
+    #
+
+
+
 
 ATTRIBUTES = [
-    'identifier',
-    'title',
-    'description',
-    'thumbnail_url',
+    # 'identifier',
+    # 'title', # should this remain?
+    # 'description',
+    # 'thumbnail_url',
+    # 'admin_metadata',
+    # "url"
+    # 'summary',
+    # 'image'
 ]
+
 
 class WrapperFactory(object):
     '''
     Can build custom classes based on a superclass and a list of attributes.
-    The attribute list is parsed before it assigns the methods to the new class.
-    my_factory = WrapperFactory(SomeSuperclass, ['foo','bar'])
-    
+    The attribute list is parsed before it assigns the methods to the new
+    class. my_factory = WrapperFactory(SomeSuperclass, ['foo','bar'])
+
     MyWrapperClass = my_factory.build('DynamicClassName', ...)
     '''
     def __init__(self, product_superclass, product_attributes):
@@ -82,6 +161,7 @@ class WrapperFactory(object):
 
 wrapper_factory = WrapperFactory(SearchItemWrapper, ATTRIBUTES)
 
+
 class Search(object):
     """
     Object search view and object type registry
@@ -89,35 +169,38 @@ class Search(object):
     def __init__(self):
         self.wrappers = dict()
         self.settings = dict()
-    
+
     def __call__(self, request, query_param='q'):
         """
-        Searches in the fields of the given related model and returns the 
+        Searches in the fields of the given related model and returns the
         result as a simple string to be used by the jQuery Autocomplete plugin
         """
         signals.search_request.send(sender=self, request=request)
         query_string = request.REQUEST.get(query_param, '')
         limit = int(request.REQUEST.get('limit', '50'))
         timestamp = request.REQUEST.get('timestamp', '')
-        #print u"QUERY: %s (limit: %s timestamp: %s)" % (query_string, limit, timestamp)
-        
+
+
         # find the model to search on
-        content_type_id = request.REQUEST.get('content_type_id', None) # an integer
-        content_type_str = request.REQUEST.get('content_type', None) # a string 'myapp.mymodel'
+        # an integer
+        content_type_id = request.REQUEST.get('content_type_id', None)
+        # a string 'myapp.mymodel'
+        content_type_str = request.REQUEST.get('content_type', None)
         if content_type_id:
             content_type = ContentType.objects.get_for_id(content_type_id)
         elif content_type_str:
             app_label, model_name = content_type_str.split('.')
-            content_type = ContentType.objects.get(app_label=app_label, model=model_name)
+            content_type = ContentType.objects.get(
+                app_label=app_label, model=model_name
+                )
         else:
             return self.not_found(request)
-        #print u"CONTENT TYPE: %s" % content_type
         Model = content_type.model_class()
-        #print Model
         Wrapper = self.get_wrapper(Model)
-        #print Wrapper
         qs = Model._default_manager.all()
-        
+
+        qs = qs.filter(Wrapper.pre_filter())
+
         obj_id = request.REQUEST.get('id',None)
         if obj_id:
             # a specific obj was provided. return just that
@@ -125,7 +208,6 @@ class Search(object):
         else:
             for bit in query_string.split():
                 or_queries = []
-                #print bit
                 for field_name in Wrapper.search_fields:
                     field_qs = {}
                     if not field_name.endswith('__icontains'):
@@ -134,87 +216,96 @@ class Search(object):
                         field_qs[field_name] = smart_str(bit)
                     or_queries.append(Q(**field_qs))
                 qs = qs.filter(reduce(operator.or_, or_queries))
-            
+
             qs = qs[:limit]
-        #print "QS:", qs
         structured_data = []
         added_ids = []
         for item in qs:
-            #print u'handling: %s' % item
             wrapped_item = Wrapper(item)
             try:
                 if not wrapped_item.identifier() in added_ids:
                     structured_data.append({
                                 'identifier': wrapped_item.identifier(),
                                 'title':wrapped_item.title(),
-                                'description':wrapped_item.description(),
+                                'summary':wrapped_item.summary(),
                                 'thumbnail_url': wrapped_item.thumbnail_url(),
+                                'url': wrapped_item.url(),
+                                'admin_metadata': wrapped_item.admin_metadata(),
                             })
                     added_ids.append(wrapped_item.identifier())
             except Exception, e:
-                print u"Something went wrong while handling a search wrapper: %s" % e
-        ##print data
-        #pprint(structured_data)
+                print u"Something went wrong while handling a search wrapper %s) %s" % (e, wrapped_item)
         if len(structured_data)>0:
-            return HttpResponse(simplejson.dumps(structured_data),mimetype='application/json')
+            return HttpResponse(
+                simplejson.dumps(structured_data),
+                mimetype='application/json'
+                )
         else:
             return self.not_found(request)
-    
+
     def register(self, klasses, search_fields=None, **kwargs):
         if not isinstance(klasses, list):
             klasses = [klasses]
         if not search_fields:
-            raise Exception("widgetry search registration: search_fields are missing")
+            raise Exception(
+            "widgetry search registration: search_fields are missing"
+            )
         for klass in klasses:
-            wrapper = wrapper_factory.build('%sAutoGenerated' % klass.__name__, search_fields, kwargs)
+            wrapper = wrapper_factory.build(
+                '%sAutoGenerated' % klass.__name__,
+                search_fields,
+                kwargs
+                )
             self.register_wrapper(klass, wrapper)
-            
+
     def register_wrapper(self, klasses, wrapper):
         if not isinstance(klasses, list):
             klasses = [klasses]
         for klass in klasses:
-            #print "NOW REGISTERING %s (%s)" % (klass, type(klass) )
             signals.wrapper_registration.send(sender=self, klass=klass, wrapper=wrapper)
             self.wrappers[klass] = wrapper
-    
+
     def get_wrapper(self, model_or_string):
-        #print "get wrapper %s" % model_or_string
         if isinstance(model_or_string, str):
             app_label, model_name = model_or_string.split('.')
-            content_type = ContentType.objects.get(app_label=app_label, model=model_name)
+            content_type = ContentType.objects.get(
+                app_label=app_label,
+                model=model_name
+                )
             model = content_type.model_class()
         else:
             model = model_or_string
         signals.get_wrapper.send(sender=self, model=model)
-        #print "return wrapper for %s" % model
-        #print self.wrappers
         if model in self.wrappers:
             wrapper = self.wrappers[model]
         else:
             wrapper = SearchItemWrapper
-        #print "    wrapper: %s" % wrapper
         return wrapper
-    
+
     def is_registered(self, model):
         return model in self.wrappers
-        
+
     def not_found(self, request):
         #return HttpResponse(status=404)
-        # autocomplete fucks up if we return a 404 (it gets handled like
+        # autocomplete breaks if we return a 404 (it gets handled like
         # a failure)
-        return HttpResponse(simplejson.dumps([]),mimetype='application/json')
+        return HttpResponse(simplejson.dumps([]), mimetype='application/json')
 
     def forbidden(self, request):
         return HttpResponse(status=403)
-    
+
     def content_type_choices(self):
         choices = []
         #q_obj = None
         for model_class, wrapper in self.wrappers.items():
             #new_q = Q(app_label = model_class._meta.app_name, )
             content_type = ContentType.objects.get_for_model(model_class)
-            choices.append((content_type.pk, u"%s: %s" % (content_type.app_label.replace('_', ' '), content_type.name)))
-        return choices #((1,'hello'),(2,'there'),) 
+            choices.append((
+                content_type.pk,
+                u"%s: %s" % (content_type.app_label.replace('_', ' '),
+                content_type.name)
+                ))
+        return choices #((1,'hello'),(2,'there'),)
 
 
 search = Search()
