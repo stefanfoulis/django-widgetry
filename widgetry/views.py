@@ -90,6 +90,14 @@ class SearchItemWrapper(object):
             ''
             ))
 
+    # subclasses should override this class method if they need to pre-filter
+    # the items that are returned in autocomplete searches. For example,
+    # cms.Pages exist in draft and published forms, and we don't want both -
+    # so its LinkWrapper subclass should return Q(publisher_is_draft=True)
+    @classmethod
+    def pre_filter(cls):
+        return Q()
+
 
     #
     #
@@ -190,6 +198,8 @@ class Search(object):
         Model = content_type.model_class()
         Wrapper = self.get_wrapper(Model)
         qs = Model._default_manager.all()
+
+        qs = qs.filter(Wrapper.pre_filter())
 
         obj_id = request.REQUEST.get('id',None)
         if obj_id:
